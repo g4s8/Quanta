@@ -1,0 +1,24 @@
+group = artifact_group
+version = "${artifact_version}.${build_number}"
+
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile "com.chaitanyapramod.gradle:findbugs-android:1.0"
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14.1'
+}
