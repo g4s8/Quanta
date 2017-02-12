@@ -1,5 +1,5 @@
 group = artifact_group
-version = "${artifact_version}.${build_number}"
+version = "${artifact_version}." + (System.env.TRAVIS_BUILD_NUMBER ?: "0")
 
 apply plugin: 'groovy'
 apply plugin: 'maven'
