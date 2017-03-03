@@ -8,9 +8,9 @@
     <suppress checks="[a-zA-Z0-9]*" files="BuildConfig.java"/>
 
     <!-- Suppressions for unit testing code -->
-    <suppress checks="MagicNumber" files="[/\\]test[/\\]src[/\\]java[/\\]"/>
-    <suppress checks="MethodCount" files="[/\\]test[/\\]src[/\\]java[/\\]"/>
-    <suppress checks="MethodLength" files="[/\\]test[/\\]src[/\\]java[/\\]"/>
+    <suppress checks="MagicNumber" files="[/\\]src[/\\]test[/\\]java[/\\]"/>
+    <suppress checks="MethodCount" files="[/\\]src[/\\]test[/\\]java[/\\]"/>
+    <suppress checks="MethodLength" files="[/\\]src[/\\]test[/\\]java[/\\]"/>
 
     <!--
     TODO: suppress some checks for activities, services, fragments, etc
