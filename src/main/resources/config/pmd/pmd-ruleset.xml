@@ -21,6 +21,8 @@
     <rule ref="rulesets/java/naming.xml">
         <exclude name="ShortVariable" />
         <exclude name="AvoidFieldNameMatchingMethodName" />
+        <exclude name="AbstractNaming" />
+        <exclude name="ShortClassName" />
     </rule>
 
     <!-- TODO: add more rules! -->
