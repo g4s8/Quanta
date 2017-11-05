@@ -94,7 +94,7 @@ class Quanta implements Plugin<Project> {
   }
 
   private static InputStream bundledStream(String name) {
-    URL url = Quanta.class.classLoader.getResource(name)
+    URL url = Quanta.class.classLoader.getResource(name.startsWith('/') ? name.substring(1) : name)
     if (url == null) {
       throw new IOException("Resource was not found: $name")
     }
