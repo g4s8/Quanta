@@ -71,7 +71,7 @@ class Quanta implements Plugin<Project> {
     }
     if (qnt.pmdConfig.enabled) {
       qnt.pmdConfig.configuration = qnt.pmdConfig.configuration ?:
-        copyFromBundle(workdir, 'config/pmd', 'pmd-ruleset.xml')
+        copyFromBundle(workdir, '/config/pmd', 'pmd-ruleset.xml')
     }
     if (qnt.findBugsConfig.enabled) {
       qnt.findBugsConfig.exclude = qnt.findBugsConfig.exclude ?:
