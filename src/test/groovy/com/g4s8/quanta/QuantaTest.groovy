@@ -14,39 +14,40 @@ import org.junit.Test
  */
 class QuantaTest {
 
-    Project proj
+  Project proj
 
-    @Before
-    void setUp() {
-        proj = ProjectBuilder.builder().build()
-        proj.tasks.create('check')
-        proj.pluginManager.apply 'com.g4s8.quanta'
-    }
+  @Before
+  void setUp() {
+    proj = ProjectBuilder.builder().build()
+    proj.pluginManager.apply('com.g4s8.quanta')
+    proj.tasks.create('check')
+    proj.evaluationDependsOnChildren()
+  }
 
-    @Test
-    @Ignore
-    void checkstyle() {
-        def task = proj.tasks.findByName('checkstyle')
-        MatcherAssert.assertThat(task, Matchers.notNullValue())
-        def check = proj.tasks.findByName('check')
-        MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
-    }
+  @Test
+  @Ignore
+  void checkstyle() {
+    def task = proj.tasks.findByName('checkstyle')
+    MatcherAssert.assertThat(task, Matchers.notNullValue())
+    def check = proj.tasks.findByName('check')
+    MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
+  }
 
-    @Test
-    @Ignore
-    void pmd() {
-        def task = proj.tasks.findByName('pmd')
-        MatcherAssert.assertThat(task, Matchers.notNullValue())
-        def check = proj.tasks.findByName('check')
-        MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
-    }
+  @Test
+  @Ignore
+  void pmd() {
+    def task = proj.tasks.findByName('pmd')
+    MatcherAssert.assertThat(task, Matchers.notNullValue())
+    def check = proj.tasks.findByName('check')
+    MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
+  }
 
-    @Test
-    @Ignore
-    void findbugs() {
-        def task = proj.tasks.findByName('findbugs')
-        MatcherAssert.assertThat(task, Matchers.notNullValue())
-        def check = proj.tasks.findByName('check')
-        MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
-    }
+  @Test
+  @Ignore
+  void findbugs() {
+    def task = proj.tasks.findByName('findbugs')
+    MatcherAssert.assertThat(task, Matchers.notNullValue())
+    def check = proj.tasks.findByName('check')
+    MatcherAssert.assertThat(check.dependsOn.contains(task), Matchers.is(true))
+  }
 }

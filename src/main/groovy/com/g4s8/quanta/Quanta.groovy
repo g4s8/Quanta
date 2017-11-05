@@ -1,5 +1,6 @@
 package com.g4s8.quanta
 
+import java.util.zip.ZipFile
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.quality.Checkstyle
@@ -11,103 +12,108 @@ import org.gradle.api.plugins.quality.Pmd
  */
 class Quanta implements Plugin<Project> {
 
-    @Override
-    void apply(Project project) {
-        project.extensions.create('quanta', QuantaExt)
-        def resDir = File.createTempFile('quanta', '.res')
-        resDir.delete()
-        resDir.mkdir()
-        resDir.deleteOnExit()
-        project.logger.info "Created temporary resource directory: $resDir"
+  @Override
+  void apply(Project project) {
+    project.extensions.create('quanta', QuantaExt)
+    project.afterEvaluate {
+      def qnt = initialize(project)
+      if (qnt.checkstyleConfig.enabled) {
+        project.apply plugin: 'checkstyle'
+        project.tasks.create("checkstyle", Checkstyle.class, new CheckstyleConfigurator(project))
+        project.tasks.getByName('check').dependsOn 'checkstyle'
+        project.logger.info 'Added Checkstyle task'
+      }
 
-        if (project.quanta.checkstyle) {
-            project.apply plugin: 'checkstyle'
-            project.tasks.create("checkstyle", Checkstyle.class) {
-                configFile copy("/config/checkstyle/checkstyle.xml", resDir)
-                configProperties.checkstyleSuppressionsPath = copy("/config/checkstyle/suppressions.xml", resDir).absolutePath
-                source 'src'
-                include '**/*.java'
-                exclude '**/gen/**'
-                classpath = project.files()
-            }
-            project.tasks.getByName('check').dependsOn 'checkstyle'
+      if (qnt.pmdConfig.enabled) {
+        project.apply plugin: 'pmd'
+        project.tasks.create("pmd", Pmd.class, new PmdConfigurator(project))
+        project.tasks.getByName('check').dependsOn 'pmd'
+        project.logger.info 'Added PMD task'
+      }
+
+      if (qnt.findBugsConfig.enabled) {
+        project.apply plugin: 'findbugs'
+        project.tasks.create('findbugs', FindBugs.class, new FindBugsConfigurator(project))
+        project.tasks.getByName('findbugs').dependsOn 'assembleDebug'
+        project.tasks.getByName('check').dependsOn 'findbugs'
+        project.logger.info 'Added Findbugs task'
+      }
+
+      if (qnt.lintConfig.enabled) {
+        project.android {
+          lintOptions {
+            abortOnError true
+            xmlReport false
+            htmlReport true
+            lintConfig qnt.lintConfig.configuration
+            htmlOutput project.file("${project.reportsDir}/lint/lint-result.html")
+            xmlOutput project.file("${project.reportsDir}/lint/lint-result.xml")
+          }
         }
+        project.tasks.getByName('check').dependsOn 'lint'
+        project.logger.info 'Added Android-Lint task'
+      }
+    }
+  }
 
-        if (project.quanta.pmd) {
-            project.apply plugin: 'pmd'
-            project.tasks.create("pmd", Pmd.class) {
-                ignoreFailures = false
-                ruleSetFiles = project.files(copy("config/pmd/pmd-ruleset.xml", resDir))
-                ruleSets = []
+  private static QuantaExt initialize(Project project) {
+    def workdir = File.createTempFile('quanta', '.res')
+    workdir.delete()
+    workdir.mkdir()
+    workdir.deleteOnExit()
+    project.logger.debug "Created temporary resource directory: $workdir"
+    def qnt = project.quanta
+    if (qnt.checkstyleConfig.enabled) {
+      qnt.checkstyleConfig.configuration = qnt.checkstyleConfig.configuration ?:
+        copyFromBundle(workdir, '/config/checkstyle', 'checkstyle.xml')
+      qnt.checkstyleConfig.suppressions = qnt.checkstyleConfig.suppressions ?:
+          copyFromBundle(workdir, '/config/checkstyle', 'suppressions.xml')
+    }
+    if (qnt.pmdConfig.enabled) {
+      qnt.pmdConfig.configuration = qnt.pmdConfig.configuration ?:
+        copyFromBundle(workdir, 'config/pmd', 'pmd-ruleset.xml')
+    }
+    if (qnt.findBugsConfig.enabled) {
+      qnt.findBugsConfig.exclude = qnt.findBugsConfig.exclude ?:
+        copyFromBundle(workdir, '/config/findbugs', 'findbugs-filter.xml')
+    }
+    if (qnt.lintConfig.enabled) {
+      qnt.lintConfig.configuration = qnt.lintConfig.configuration ?:
+        copyFromBundle(workdir, '/config/lint', 'lint.xml')
+    }
+    qnt
+  }
 
-                source 'src'
-                include '**/*.java'
-                exclude '**/gen/**'
+  private static File copyFromBundle(File outdir, String path, String name) {
+    def file = new File(outdir, name)
+    bundledStream(new File(path, name).absolutePath).withCloseable {
+      def src = it
+      file.newOutputStream().withCloseable { it.bytes = src.bytes }
+    }
+    file
+  }
 
-                reports {
-                    xml.enabled = false
-                    html.enabled = true
-                    xml {
-                        destination "${project.reportsDir}/pmd/pmd.xml"
-                    }
-                    html {
-                        destination "${project.reportsDir}/pmd/pmd.html"
-                    }
-                }
-            }
-            project.tasks.getByName('check').dependsOn 'pmd'
-        }
-
-        if (project.quanta.lint) {
-            project.android {
-                lintOptions {
-                    abortOnError true
-                    xmlReport false
-                    htmlReport true
-                    lintConfig copy("/config/lint/lint.xml", resDir)
-                    htmlOutput project.file("${project.reportsDir}/lint/lint-result.html")
-                    xmlOutput project.file("${project.reportsDir}/lint/lint-result.xml")
-                }
-            }
-            project.tasks.getByName('check').dependsOn 'lint'
-        }
-
-        if (project.quanta.findbugs) {
-            project.apply plugin: 'findbugs'
-            project.tasks.create('findbugs', FindBugs.class) {
-                ignoreFailures = false
-                effort = "max"
-                reportLevel = "high"
-                excludeFilter = copy("/config/findbugs/findbugs-filter.xml", resDir)
-                classes = project.files("${project.buildDir}/intermediates/classes")
-
-                source 'src'
-                include '**/*.java'
-                exclude '**/gen/**'
-
-                reports {
-                    xml.enabled = false
-                    html.enabled = true
-                    xml {
-                        destination "${project.reportsDir}/findbugs/findbugs.xml"
-                    }
-                    html {
-                        destination "${project.reportsDir}/findbugs/findbugs.html"
-                    }
-                }
-
-                classpath = project.files()
-            }
-            project.tasks.getByName('findbugs').dependsOn 'assembleDebug'
-            project.tasks.getByName('check').dependsOn 'findbugs'
-        }
+  private static InputStream bundledStream(String name) {
+    URL url = Quanta.class.classLoader.getResource(name)
+    if (url == null) {
+      throw new IOException("Resource was not found: $name")
     }
 
-    private static File copy(String res, File resDir) {
-        def out = new File(resDir, res)
-        out.mkdirs()
-        out.delete()
-        new FileOutputStream(out).write(new ResInputStream(res).bytes)
-        return out
+    InputStream res
+    try {
+      res = url.openStream()
+    } catch (IOException ignored) {
+      // fallback to read JAR directly
+      def connection = url.openConnection() as JarURLConnection
+      def jarFile = connection.jarFileURL.toURI()
+      ZipFile zip
+      try {
+        zip = new ZipFile(new File(jarFile))
+      } catch (FileNotFoundException err) {
+        throw new IOException("Resource was not found in jar: $name", err)
+      }
+      res = zip.getInputStream((zip.getEntry(name)))
     }
+    res
+  }
 }
