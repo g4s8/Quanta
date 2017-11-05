@@ -56,29 +56,30 @@ class Quanta implements Plugin<Project> {
   }
 
   private static QuantaExt initialize(Project project) {
-    def workdir = File.createTempFile('quanta', '.res')
-    workdir.delete()
-    workdir.mkdir()
-    workdir.deleteOnExit()
-    project.logger.debug "Created temporary resource directory: $workdir"
+    def out = new File(project.buildDir, 'quanta').with {
+      it.delete()
+      it.mkdirs()
+      it
+    }
+    project.logger.info "Initializing Quanta in: $out"
     def qnt = project.quanta
     if (qnt.checkstyleConfig.enabled) {
       qnt.checkstyleConfig.configuration = qnt.checkstyleConfig.configuration ?:
-        copyFromBundle(workdir, '/config/checkstyle', 'checkstyle.xml')
+        copyFromBundle(out, '/config/checkstyle', 'checkstyle.xml')
       qnt.checkstyleConfig.suppressions = qnt.checkstyleConfig.suppressions ?:
-        copyFromBundle(workdir, '/config/checkstyle', 'suppressions.xml')
+        copyFromBundle(out, '/config/checkstyle', 'suppressions.xml')
     }
     if (qnt.pmdConfig.enabled) {
       qnt.pmdConfig.configuration = qnt.pmdConfig.configuration ?:
-        copyFromBundle(workdir, '/config/pmd', 'pmd-ruleset.xml')
+        copyFromBundle(out, '/config/pmd', 'pmd-ruleset.xml')
     }
     if (qnt.findBugsConfig.enabled) {
       qnt.findBugsConfig.exclude = qnt.findBugsConfig.exclude ?:
-        copyFromBundle(workdir, '/config/findbugs', 'findbugs-filter.xml')
+        copyFromBundle(out, '/config/findbugs', 'findbugs-filter.xml')
     }
     if (qnt.lintConfig.enabled) {
       qnt.lintConfig.configuration = qnt.lintConfig.configuration ?:
-        copyFromBundle(workdir, '/config/lint', 'lint.xml')
+        copyFromBundle(out, '/config/lint', 'lint.xml')
     }
     qnt
   }
