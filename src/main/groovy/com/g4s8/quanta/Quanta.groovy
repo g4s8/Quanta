@@ -15,8 +15,7 @@ class Quanta implements Plugin<Project> {
   @Override
   void apply(Project project) {
     project.extensions.create('quanta', QuantaExt)
-    project.afterEvaluate {
-      def qnt = initialize(project)
+    initialize(project).with { qnt ->
       if (qnt.checkstyleConfig.enabled) {
         project.apply plugin: 'checkstyle'
         project.tasks.create("checkstyle", Checkstyle.class, new CheckstyleConfigurator(project))
@@ -67,7 +66,7 @@ class Quanta implements Plugin<Project> {
       qnt.checkstyleConfig.configuration = qnt.checkstyleConfig.configuration ?:
         copyFromBundle(workdir, '/config/checkstyle', 'checkstyle.xml')
       qnt.checkstyleConfig.suppressions = qnt.checkstyleConfig.suppressions ?:
-          copyFromBundle(workdir, '/config/checkstyle', 'suppressions.xml')
+        copyFromBundle(workdir, '/config/checkstyle', 'suppressions.xml')
     }
     if (qnt.pmdConfig.enabled) {
       qnt.pmdConfig.configuration = qnt.pmdConfig.configuration ?:
