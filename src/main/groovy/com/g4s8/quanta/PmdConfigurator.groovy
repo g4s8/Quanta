@@ -19,8 +19,8 @@ final class PmdConfigurator implements Action<Pmd> {
     self.ruleSets = []
 
     self.source = 'src'
-    self.include = '**/*.java'
-    self.exclude = '**/gen/**'
+    self.include '**/*.java'
+    self.exclude '**/gen/**'
 
     self.reports {
       xml.enabled = false

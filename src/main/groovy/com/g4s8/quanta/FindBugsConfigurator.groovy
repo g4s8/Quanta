@@ -21,8 +21,8 @@ final class FindBugsConfigurator implements Action<FindBugs> {
     self.classes = project.files("${project.buildDir}/intermediates/classes")
 
     self.source = 'src'
-    self.include = '**/*.java'
-    self.exclude = '**/gen/**'
+    self.include '**/*.java'
+    self.exclude '**/gen/**'
 
     self.reports {
       xml.enabled = false

@@ -20,8 +20,8 @@ final class CheckstyleConfigurator implements Action<Checkstyle> {
       self.configProperties.checkstyleSuppressionsPath = cfg.suppressions
     }
     self.source = 'src'
-    self.include = '**/*.java'
-    self.exclude = '**/gen/**'
+    self.include '**/*.java'
+    self.exclude '**/gen/**'
     self.classpath = project.files()
   }
 }
