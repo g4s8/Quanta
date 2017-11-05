@@ -82,12 +82,6 @@
                                            PLUS, QUESTION, SL, SR, STAR"/>
         </module>
 
-        <module name="ParenPad">
-            <property name="option" value="nospace"/>
-            <property name="tokens"
-                      value="CTOR_CALL, LPAREN, METHOD_CALL, RPAREN, SUPER_CTOR_CALL"/>
-        </module>
-
         <module name="TypecastParenPad">
             <property name="option" value="nospace"/>
             <property name="tokens" value="TYPECAST, RPAREN"/>
